@@ -12,7 +12,7 @@ let corsOptions = {
 app.use(cors(corsOptions));
 
 app.get('/', (req, res) => {
-	res.send('Hello, World!');
+	res.json({ 'message' : 'Hello, World!'});
 });
 
 app.listen(PORT, () => {
