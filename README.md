@@ -7,4 +7,7 @@
 ```
 npm i express
 npm i cors
+npm i jsonwebtoken
+npm i cookieparser
+npm i dotenv
 ```
