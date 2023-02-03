@@ -1,5 +1,5 @@
 const { startServer } = require('./src/api');
 
-require('dotenv').config()
+require('dotenv').config();
 
 startServer();

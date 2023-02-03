@@ -1,8 +1,9 @@
-const jwt = require("jsonwebtoken");
-// const cookieParser = require("cookie-parser");
+const jwt = require('jsonwebtoken');
+const auth = require('./authService');
 
 const login = (req, res) => {
-  const userId = "ksj";
+  console.log('login');
+  const userId = 'ksj';
 
   //jwt.sign(payload, secretOrPrivateKey, [options, callback])
   accssToken = jwt.sign(
@@ -11,8 +12,8 @@ const login = (req, res) => {
     },
     process.env.ACCESS_KEY,
     {
-      expiresIn: "1m",
-      issuer: "eggs",
+      expiresIn: '1m',
+      issuer: 'eggs',
     }
   );
 
@@ -22,25 +23,18 @@ const login = (req, res) => {
     },
     process.env.REFRESH_KEY,
     {
-      expiresIn: "24h",
-      issuer: "eggs",
+      expiresIn: '24h',
+      issuer: 'eggs',
     }
   );
 
   // token 보내기
-  res.cookie("ac", accssToken, {
-    secure: true,
-    httpOnly: true,
-  });
-  res.cookie("re", refreshToken, {
-    secure: false,
-    httpOnly: true,
-  });
+  auth.sendToken(res, req);
 
   // 응답 보내기
   res.status(200).json({
     code: 200,
-    message: "토큰이 발급되었습니다.",
+    message: '토큰이 발급되었습니다.',
   });
 };
 
