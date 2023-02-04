@@ -1,9 +1,17 @@
 ### 서버 실행
+
 ```
-./start.sh
+npm start
+```
+
+### 설정
+
+```
+npm init
 ```
 
 ### 설치한 모듈
+
 ```
 npm i express
 npm i cors
@@ -12,4 +20,5 @@ npm i jwt-decode
 npm i cookieparser
 npm i dotenv
 npm i cookie-parser
+npm i body-parser
 ```

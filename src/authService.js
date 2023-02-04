@@ -19,12 +19,12 @@ const verifyToken = (req, tokenName, secretKey) => {
 
 const checkAuthWithoutError = (req, res) => {
   let authStruct = {
-    authorized: false,
+    success: false,
     message: 'token is not valid',
   };
 
   if (verifyToken(req, process.env.ACCESS_TOKEN_NAME, process.env.ACCESS_KEY)) {
-    authStruct.authorized = true;
+    authStruct.success = true;
     authStruct.message = 'token is valid';
   }
 
