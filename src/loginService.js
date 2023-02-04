@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 const auth = require('./authService');
 
 const login = (req, res) => {
-  console.log('login');
   const userId = 'ksj';
 
   //jwt.sign(payload, secretOrPrivateKey, [options, callback])
@@ -28,13 +27,10 @@ const login = (req, res) => {
     }
   );
 
-  // token 보내기
-  auth.sendToken(res, req);
+  auth.sendToken(req, res);
 
-  // 응답 보내기
   res.status(200).json({
-    code: 200,
-    message: '토큰이 발급되었습니다.',
+    message: 'ticket is issued normally.',
   });
 };
 

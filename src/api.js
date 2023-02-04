@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { login } = require('./loginService');
 const jwt = require('jsonwebtoken');
-const { checkAuth } = require('./authService');
+const { checkAuthWithoutError, checkAuth, renewalToken } = require('./authService');
 const cookieParser = require('cookie-parser');
 
 const app = express();
@@ -15,9 +15,12 @@ let corsOptions = {
 app.use(cors(corsOptions));
 app.use(cookieParser());
 
-app.post('/token', (req, res) => {});
+// 현재 토큰이 유효한지 인증만 하고 싶다.
+app.get('/token/authorization', checkAuthWithoutError);
 
-app.post('/login', checkAuth, login);
+app.post('/token/renewal', checkAuth, renewalToken);
+
+app.post('/login', login);
 
 const startServer = () => {
   const PORT = 5000;
