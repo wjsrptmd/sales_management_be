@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { login } = require('./loginService');
+const { login, salt } = require('./loginService');
 const jwt = require('jsonwebtoken');
 const { checkAuthWithoutError, checkAuth, renewalToken } = require('./authService');
 const cookieParser = require('cookie-parser');
@@ -9,7 +9,7 @@ const bodyParser = require('body-parser');
 const app = express();
 
 let corsOptions = {
-  origin: ['https://localhost:3000', 'http://localhost:3000'],
+  origin: ['https://localhost:8080', 'http://localhost:8080'],
   credentials: true,
 };
 
@@ -17,11 +17,12 @@ app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(bodyParser.json());
 
-// 현재 토큰이 유효한지 인증만 하고 싶다.
-app.get('/token/authorization', checkAuthWithoutError);
-
+// 인증
+app.get('/token/authorization', checkAuthWithoutError); // 현재 토큰이 유효한지 인증만 하고 싶다.
 app.post('/token/renewal', checkAuth, renewalToken);
 
+// 로그인
+app.get('/login/salt', salt);
 app.post('/login', login);
 
 const startServer = () => {
