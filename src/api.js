@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { login, salt } = require('./loginService');
+const { login, salt, signup } = require('./loginService');
 const jwt = require('jsonwebtoken');
 const { checkAuthWithoutError, checkAuth, renewalToken } = require('./authService');
 const cookieParser = require('cookie-parser');
@@ -22,8 +22,9 @@ app.get('/token/authorization', checkAuthWithoutError); // 현재 토큰이 유�
 app.post('/token/renewal', checkAuth, renewalToken);
 
 // 로그인
-app.get('/login/salt', salt);
 app.post('/login', login);
+app.get('/login/salt', salt);
+app.post('/login/signUp', signup);
 
 const startServer = () => {
   const PORT = 5000;

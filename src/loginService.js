@@ -1,4 +1,5 @@
 const auth = require('./authService');
+const db = require('./database/db');
 
 const login = (req, res) => {
   console.log('login 요청');
@@ -34,7 +35,36 @@ const salt = (req, res) => {
   });
 };
 
+const signup = (req, res) => {
+  try {
+    console.log('signup');
+    const id = req.body['id'];
+    const pw = req.body['pw'];
+    const salt = req.body['salt'];
+    const count = db.snedQuery(`SELECT count(id) FROM user_info WHERE id = ${id};`);
+    if (count > 0) {
+      res.status(200).json({
+        result: 'exist',
+        message: `id is already exist : ${id}`,
+      });
+    } else {
+      db.snedQuery(`INSERT INTO user_info (id, pw, salt) VALUES (${id}, ${pw}, ${salt});`);
+
+      res.status(200).json({
+        result: 'success',
+        message: 'signup success',
+      });
+    }
+  } catch (err) {
+    res.status(501).json({
+      result: 'error',
+      message: err,
+    });
+  }
+};
+
 module.exports = {
   login,
   salt,
+  signup,
 };

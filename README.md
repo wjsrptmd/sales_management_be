@@ -22,4 +22,5 @@ npm i dotenv
 npm i cookie-parser
 npm i body-parser
 npm i bcrypt
+npm i mysql2
 ```
