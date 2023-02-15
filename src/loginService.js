@@ -1,7 +1,7 @@
 const auth = require('./authService');
 const db = require('./database/db');
 
-const login = (req, res) => {
+function login(req, res) {
   console.log('login 요청');
   const id = req.body['id'];
   const password = req.body['pw'];
@@ -26,42 +26,59 @@ const login = (req, res) => {
     success: loginSuccess,
     message: loginMessage,
   });
-};
+}
 
-const salt = (req, res) => {
+function salt(req, res) {
   console.log('salt 요청');
   res.status(200).json({
     salt: 'QPcSnHi5XAfV0/clZpXqQGys97auUaBKdRhGXy0h9//y5gUvwaS3lGQpVwUCuoA/x1/8FDzQXAMpCdCyPHGWSw==', // TODO : db 에서 salt 를 가져와야한다.
   });
-};
+}
 
-const signup = (req, res) => {
+function checkDupId(id) {
+  return db
+    .excuteQuery(`SELECT count(id) FROM user_info WHERE id = '${id}';`)
+    .then(function (success, data) {
+      console.log('2');
+      return true;
+    })
+    .catch(function (error) {
+      // console.log(error);
+      return false;
+    });
+  // if (success) {
+  //   // console.log(`data : ${data}`);
+  // } else {
+  //   // console.log(`throw 입니다.`);
+  //   throw new Error(data);
+  // }
+  // return success;
+}
+
+async function signup(req, res) {
   try {
     console.log('signup');
     const id = req.body['id'];
     const pw = req.body['pw'];
     const salt = req.body['salt'];
-    const count = db.snedQuery(`SELECT count(id) FROM user_info WHERE id = ${id};`);
-    if (count > 0) {
-      res.status(200).json({
-        result: 'exist',
-        message: `id is already exist : ${id}`,
-      });
-    } else {
-      db.snedQuery(`INSERT INTO user_info (id, pw, salt) VALUES (${id}, ${pw}, ${salt});`);
+    // const checkIdResult = await db.execute(`SELECT count(id) FROM user_info WHERE id = '${id}';`);
+    const ret = await db.execute(`SELECT * FROM user_infos;`);
+    console.log(`result : ${ret}}`);
 
-      res.status(200).json({
-        result: 'success',
-        message: 'signup success',
-      });
-    }
+    // db.snedQuery(`INSERT INTO user_info (id, pw, salt) VALUES (${id}, ${pw}, ${salt});`);
+
+    res.status(200).json({
+      result: 'success',
+      message: 'signup success',
+    });
   } catch (err) {
+    console.log('error 입니다.');
     res.status(501).json({
       result: 'error',
       message: err,
     });
   }
-};
+}
 
 module.exports = {
   login,
