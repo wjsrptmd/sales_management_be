@@ -62,7 +62,7 @@ async function signup(req, res) {
     const pw = req.body['pw'];
     const salt = req.body['salt'];
     // const checkIdResult = await db.execute(`SELECT count(id) FROM user_info WHERE id = '${id}';`);
-    const ret = await db.execute(`SELECT * FROM user_infos;`);
+    const ret = await db.execute(`SELECT * FROM user_info;`);
     console.log(`result : ${ret}}`);
 
     // db.snedQuery(`INSERT INTO user_info (id, pw, salt) VALUES (${id}, ${pw}, ${salt});`);
