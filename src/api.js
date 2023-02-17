@@ -18,12 +18,13 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 
 // 인증
-app.get('/token/authorization', checkAuthWithoutError); // 현재 토큰이 유효한지 인증만 하고 싶다.
-app.post('/token/renewal', checkAuth, renewalToken);
+app.get('/authorization', checkAuthWithoutError); // 현재 토큰이 유효한지 인증만 하고 싶다.
+// app.get('/authorization/token', checkAuth, renewalToken);
+app.post('/authorization/token/renewal', checkAuth, renewalToken);
 
 // 로그인
 app.post('/login', login);
-app.get('/login/salt', salt);
+app.post('/login/salt', salt);
 app.post('/login/signUp', signup);
 
 const startServer = () => {

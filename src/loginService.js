@@ -1,79 +1,89 @@
 const auth = require('./authService');
 const db = require('./database/db');
 
-function login(req, res) {
-  console.log('login 요청');
-  const id = req.body['id'];
-  const password = req.body['pw'];
-  console.log(id);
-  console.log(password);
-  // TODO id pw 확인
-  let loginSuccess = false;
-  let loginMessage = 'login fail';
-  if (id === 'QPcSnHi5XAfV0/clZpXqQGys97auUaBKdRhGXy0h9//y5gUvwaS3lGQpVwUCuoA/x1/8FDzQXAMpCdCyPHGWSw==') {
-    console.log('salt가 일치 합니다.');
-  }
+async function login(req, res) {
+  try {
+    let result = 'success';
+    const id = req.body['id'];
+    const pw = req.body['pw'];
+    const userInfo = await db.execute(`select * from user_info where id = '${id}';`);
 
-  if (password === 'IqkE0ZyIAO6FJKXaFQ+m626RvBLoPt/xOfwQPoxGHdMAS1Awb+Kh3luaeFKm6ciDdh0nQsH8c9f/F2Pwh7bKXA==') {
-    console.log('패스워드가 일치 합니다.');
+    if (userInfo.length == 0) {
+      result = 'isNotExist';
+    } else if (userInfo.length == 1) {
+      if (pw !== userInfo[0]['pw']) {
+        result = 'passwordFail';
+      }
+    } else {
+      // 같은 id 가 여러개 이다. 일어날 수 없는 상황 이다.
+      result = 'error';
+    }
 
-    auth.sendToken(req, res);
-    loginSuccess = true;
-    loginMessage = 'login success';
-  }
-
-  res.status(200).json({
-    success: loginSuccess,
-    message: loginMessage,
-  });
-}
-
-function salt(req, res) {
-  console.log('salt 요청');
-  res.status(200).json({
-    salt: 'QPcSnHi5XAfV0/clZpXqQGys97auUaBKdRhGXy0h9//y5gUvwaS3lGQpVwUCuoA/x1/8FDzQXAMpCdCyPHGWSw==', // TODO : db 에서 salt 를 가져와야한다.
-  });
-}
-
-function checkDupId(id) {
-  return db
-    .excuteQuery(`SELECT count(id) FROM user_info WHERE id = '${id}';`)
-    .then(function (success, data) {
-      console.log('2');
-      return true;
-    })
-    .catch(function (error) {
-      // console.log(error);
-      return false;
+    res.status(200).json({
+      result: result,
     });
-  // if (success) {
-  //   // console.log(`data : ${data}`);
-  // } else {
-  //   // console.log(`throw 입니다.`);
-  //   throw new Error(data);
-  // }
-  // return success;
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      result: 'error',
+      message: err,
+    });
+  }
+}
+
+async function salt(req, res) {
+  try {
+    const id = req.body['id'];
+    const userInfo = await db.execute(`select * from user_info where id = '${id}';`);
+    const count = userInfo.length;
+    if (count == 1) {
+      console.log(`salt : ${userInfo[0]['salt']}`);
+      res.status(200).json({
+        salt: userInfo[0]['salt'],
+      });
+    } else if (count == 0) {
+      // id 가 없습니다.
+      res.status(200).json({
+        salt: undefined,
+      });
+    } else {
+      // 같은 id 가 여러개 이다. 일어날 수 없는 상황 이다.
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      result: 'error',
+      message: err,
+    });
+  }
 }
 
 async function signup(req, res) {
   try {
-    console.log('signup');
+    let result = true;
+    let message = 'signup success';
     const id = req.body['id'];
     const pw = req.body['pw'];
     const salt = req.body['salt'];
-    // const checkIdResult = await db.execute(`SELECT count(id) FROM user_info WHERE id = '${id}';`);
-    const ret = await db.execute(`SELECT * FROM user_info;`);
-    console.log(`result : ${ret}}`);
+    const queryRet = await db.execute(`SELECT count(*) as cnt FROM user_info WHERE id = '${id}';`);
 
-    // db.snedQuery(`INSERT INTO user_info (id, pw, salt) VALUES (${id}, ${pw}, ${salt});`);
+    const cnt = queryRet[0]['cnt'];
+    if (cnt > 0) {
+      // TODO : id 중복 warning 표시. dialog
+      result = false;
+      message = `${id} is already exist`;
+    } else {
+      await db.execute(`INSERT INTO user_info (id, pw, salt) VALUES ('${id}', '${pw}', '${salt}');`);
+      result = true;
+    }
 
     res.status(200).json({
-      result: 'success',
-      message: 'signup success',
+      result: result,
+      message: message,
     });
   } catch (err) {
-    console.log('error 입니다.');
-    res.status(501).json({
+    console.log(err);
+    res.status(500).json({
       result: 'error',
       message: err,
     });

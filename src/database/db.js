@@ -25,7 +25,7 @@ async function connectDb() {
 async function execute(query) {
   try {
     const [rows, fields] = await promisePool.query(query);
-    return JSON.stringify(rows);
+    return rows;
   } catch (err) {
     throw new Error(err);
   }
