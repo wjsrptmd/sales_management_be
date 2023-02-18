@@ -3,8 +3,7 @@ const jwt = require('jsonwebtoken');
 const tokenIssuer = 'eggs';
 const jwtAlgo = 'HS256';
 
-function verifyToken(req, tokenName, secretKey) {
-  const token = req.cookies[tokenName];
+function verifyToken(token, secretKey) {
   let isVerify = false;
   jwt.verify(token, secretKey, { algorithms: jwtAlgo }, (error) => {
     if (error) {
@@ -18,22 +17,28 @@ function verifyToken(req, tokenName, secretKey) {
 }
 
 function checkAuthWithoutError(req, res) {
-  console.log('checkAuthWithoutError');
   let authStruct = {
     success: false,
-    message: 'token is not valid',
+    message: '',
   };
 
-  if (verifyToken(req, process.env.ACCESS_TOKEN_NAME, process.env.ACCESS_KEY)) {
+  const token = req.cookies[process.env.ACCESS_TOKEN_NAME];
+  if (verifyToken(token, process.env.ACCESS_KEY)) {
     authStruct.success = true;
     authStruct.message = 'token is valid';
+  } else {
+    if (token) {
+      authStruct.message = 'token is invalid';
+    } else {
+      authStruct.message = 'token is not exist';
+    }
   }
 
   res.json(authStruct);
 }
 
 function checkAuth(req, res, next) {
-  if (verifyToken(req, process.env.ACCESS_TOKEN_NAME, process.env.ACCESS_KEY)) {
+  if (verifyToken(req.cookies[process.env.ACCESS_TOKEN_NAME], process.env.ACCESS_TOKEN_NAME, process.env.ACCESS_KEY)) {
     next();
   } else {
     res.status(401).json(error);
@@ -81,12 +86,12 @@ function sendToken(req, res) {
 }
 
 function renewalToken(req, res) {
-  if (!verifyToken(req, process.env.ACCESS_TOKEN_NAME, process.env.ACCESS_KEY)) {
+  if (!verifyToken(req.cookies[process.env.ACCESS_TOKEN_NAME], process.env.ACCESS_KEY)) {
     res.status(401).json(error);
     return;
   }
 
-  if (!verifyToken(req, process.env.REFRESH_TOKEN_NAME, process.env.REFRESH_KEY)) {
+  if (!verifyToken(req.cookies[process.env.REFRESH_TOKEN_NAME], process.env.REFRESH_KEY)) {
     res.status(401).json(error);
     return;
   }
@@ -96,6 +101,8 @@ function renewalToken(req, res) {
 }
 
 module.exports = {
+  accssToken,
+  refreshToken,
   checkAuthWithoutError,
   checkAuth,
   sendToken,
