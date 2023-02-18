@@ -9,7 +9,7 @@ const bodyParser = require('body-parser');
 const app = express();
 
 let corsOptions = {
-  origin: ['https://localhost:8080', 'http://localhost:8080'],
+  origin: true, // 모두 허용.
   credentials: true,
 };
 
