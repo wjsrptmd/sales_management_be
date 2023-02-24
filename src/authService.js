@@ -59,7 +59,7 @@ function accssToken(userId) {
     },
     process.env.ACCESS_KEY,
     {
-      expiresIn: '1m',
+      expiresIn: '5m',
       issuer: tokenIssuer,
     }
   );
