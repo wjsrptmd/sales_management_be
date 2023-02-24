@@ -1,7 +1,10 @@
 const jwt = require('jsonwebtoken');
+const db = require('./database/db');
 
 const tokenIssuer = 'eggs';
 const jwtAlgo = 'HS256';
+
+const table_user_info = 'user_info';
 
 function verifyToken(token, secretKey) {
   let isVerify = false;
@@ -16,32 +19,35 @@ function verifyToken(token, secretKey) {
   return isVerify;
 }
 
-function checkAuthWithoutError(req, res) {
-  let authStruct = {
-    success: false,
-    message: '',
-  };
-
-  const token = req.cookies[process.env.ACCESS_TOKEN_NAME];
-  if (verifyToken(token, process.env.ACCESS_KEY)) {
-    authStruct.success = true;
-    authStruct.message = 'token is valid';
-  } else {
-    if (token) {
-      authStruct.message = 'token is invalid';
+async function checkAuthFirst(req, res) {
+  ret = false;
+  msg = '';
+  try {
+    const token = req.cookies[process.env.REFRESH_TOKEN_NAME];
+    if (verifyToken(token, process.env.REFRESH_KEY)) {
+      const id = jwt.decode(token)['id'];
+      await createToken(id, res);
+      ret = true;
+      msg = 'token is valid';
     } else {
-      authStruct.message = 'token is not exist';
+      if (token) {
+        msg = 'token is invalid';
+      } else {
+        msg = 'token is not exist';
+      }
     }
-  }
 
-  res.json(authStruct);
+    res.json({ success: ret, message: msg });
+  } catch (err) {
+    res.status(500).json({ message: err });
+  }
 }
 
 function checkAuth(req, res, next) {
   if (verifyToken(req.cookies[process.env.ACCESS_TOKEN_NAME], process.env.ACCESS_TOKEN_NAME, process.env.ACCESS_KEY)) {
     next();
   } else {
-    res.status(401).json(error);
+    res.status(401).json();
   }
 }
 
@@ -73,38 +79,55 @@ function refreshToken(userId) {
   );
 }
 
-function sendToken(req, res) {
-  const id = 'ksj';
-  res.cookie(process.env.ACCESS_TOKEN_NAME, accssToken(id), {
-    secure: true,
-    httpOnly: true,
-  });
-  res.cookie(process.env.REFRESH_TOKEN_NAME, refreshToken(id), {
-    secure: true,
-    httpOnly: true,
-  });
+async function createToken(id, res) {
+  try {
+    const rfToken = refreshToken(id);
+    console.log(`rfToken : ${rfToken}`);
+    await db.execute(`update ${table_user_info} set refresh_token = '${rfToken}' where id = '${id}';`);
+    res.cookie(process.env.ACCESS_TOKEN_NAME, accssToken(id), {
+      secure: true,
+      httpOnly: false,
+      overwrite: true,
+    });
+    res.cookie(process.env.REFRESH_TOKEN_NAME, rfToken, {
+      secure: true,
+      httpOnly: true,
+      overwrite: true,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err,
+    });
+  }
 }
 
-function renewalToken(req, res) {
-  if (!verifyToken(req.cookies[process.env.ACCESS_TOKEN_NAME], process.env.ACCESS_KEY)) {
-    res.status(401).json(error);
-    return;
-  }
+async function renewalToken(req, res) {
+  try {
+    const reqRfToken = req.cookies[process.env.REFRESH_TOKEN_NAME];
+    if (!verifyToken(reqRfToken, process.env.REFRESH_KEY)) {
+      res.status(401).json('refresh token is invalid.');
+      return;
+    }
 
-  if (!verifyToken(req.cookies[process.env.REFRESH_TOKEN_NAME], process.env.REFRESH_KEY)) {
-    res.status(401).json(error);
-    return;
+    const id = jwt.decode(reqRfToken)['id'];
+    const queryRet = await db.execute(`select refresh_token from ${table_user_info} where id = '${id}';`);
+    const curRefreshToken = queryRet[0]['refresh_token'];
+    if (reqRfToken === curRefreshToken) {
+      await createToken(id, res);
+      res.status(200).json();
+    } else {
+      res.status(401).json('do not match refresh token.');
+    }
+  } catch (err) {
+    res.status(500).json(err);
   }
-
-  // TODO : db 에 저장된 refresh token 과 front 보낸 refresh token 비교.
-  sendToken(res, req);
 }
 
 module.exports = {
   accssToken,
   refreshToken,
-  checkAuthWithoutError,
+  checkAuthFirst,
   checkAuth,
-  sendToken,
+  createToken,
   renewalToken,
 };

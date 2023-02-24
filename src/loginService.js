@@ -22,16 +22,7 @@ async function login(req, res) {
     }
 
     if (result === 'success') {
-      const refreshToken = auth.refreshToken(id);
-      await db.execute(`update ${table_user_info} set refresh_token = '${refreshToken}' where id = '${id}';`);
-      res.cookie(process.env.ACCESS_TOKEN_NAME, auth.accssToken(id), {
-        secure: true,
-        httpOnly: true,
-      });
-      res.cookie(process.env.REFRESH_TOKEN_NAME, refreshToken, {
-        secure: true,
-        httpOnly: true,
-      });
+      await auth.createToken(id, res);
     }
 
     res.status(200).json({
@@ -40,7 +31,6 @@ async function login(req, res) {
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      result: 'error',
       message: err,
     });
   }
@@ -66,7 +56,6 @@ async function salt(req, res) {
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      result: 'error',
       message: err,
     });
   }
@@ -98,7 +87,6 @@ async function signup(req, res) {
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      result: 'error',
       message: err,
     });
   }
