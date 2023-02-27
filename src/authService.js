@@ -82,7 +82,6 @@ function refreshToken(userId) {
 async function createToken(id, res) {
   try {
     const rfToken = refreshToken(id);
-    console.log(`rfToken : ${rfToken}`);
     await db.execute(`update ${table_user_info} set refresh_token = '${rfToken}' where id = '${id}';`);
     res.cookie(process.env.ACCESS_TOKEN_NAME, accssToken(id), {
       secure: true,

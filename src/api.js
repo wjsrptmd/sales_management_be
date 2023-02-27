@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { login, salt, signup } = require('./loginService');
+const { login, salt, signup, findUserId } = require('./loginService');
 const jwt = require('jsonwebtoken');
 const { checkAuthFirst, checkAuth, renewalToken } = require('./authService');
 const cookieParser = require('cookie-parser');
@@ -25,6 +25,7 @@ app.get('/authorization/renewal', renewalToken);
 app.post('/login', login);
 app.post('/login/salt', salt);
 app.post('/login/signUp', signup);
+app.post('/login/id', findUserId);
 
 const startServer = () => {
   const PORT = 5000;

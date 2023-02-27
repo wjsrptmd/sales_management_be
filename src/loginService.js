@@ -92,8 +92,25 @@ async function signup(req, res) {
   }
 }
 
+async function findUserId(req, res) {
+  try {
+    const id = req.body['id'];
+    const queryRet = await db.execute(`SELECT count(*) as cnt FROM user_info WHERE id = '${id}';`);
+    const cnt = queryRet[0]['cnt'];
+    res.status(200).json({
+      result: cnt > 0,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: err,
+    });
+  }
+}
+
 module.exports = {
   login,
   salt,
   signup,
+  findUserId,
 };
