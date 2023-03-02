@@ -25,7 +25,7 @@ app.get('/authorization/renewal', renewalToken);
 app.post('/login', login);
 app.post('/login/salt', salt);
 app.post('/login/signUp', signup);
-app.post('/login/id', findUserId);
+app.get('/login/id', findUserId);
 
 const startServer = () => {
   const PORT = 5000;
